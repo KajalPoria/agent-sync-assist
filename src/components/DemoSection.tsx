@@ -191,9 +191,18 @@ export function DemoSection() {
 
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>✓ Agent A authenticated with Descope</p>
-                  <p>⏳ Processing email content...</p>
-                  <p>⏳ Generating secure delegation token...</p>
-                  <p>⏳ Agent B requesting calendar permissions...</p>
+                  <p className={processingStep.includes('analyzing') ? 'text-primary' : ''}>
+                    {processingStep.includes('analyzing') ? '⏳' : '✓'} Processing email content...
+                  </p>
+                  <p className={processingStep.includes('token') ? 'text-primary' : ''}>
+                    {processingStep.includes('token') ? '⏳' : processingStep.includes('calendar') ? '✓' : '⏳'} Generating secure delegation token...
+                  </p>
+                  <p className={processingStep.includes('calendar') ? 'text-primary' : ''}>
+                    {processingStep.includes('calendar') ? '⏳' : processingStep.includes('Creating') ? '✓' : '⏳'} Agent B requesting calendar permissions...
+                  </p>
+                  <p className={processingStep.includes('Creating') ? 'text-primary' : ''}>
+                    {processingStep.includes('Creating') ? '⏳' : '⏳'} Executing with user consent...
+                  </p>
                 </div>
               </div>
             ) : (

@@ -55,12 +55,22 @@ export function Hero() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
-                Start Demo <ArrowRight className="w-5 h-5 ml-2" />
+              <Button 
+                size="lg" 
+                className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
+                onClick={() => document.getElementById('tech-stack')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                View Tech Stack <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               
-              <Button size="lg" variant="outline" className="border-primary/30 hover:bg-primary/10">
-                View Documentation
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-primary/30 hover:bg-primary/10"
+                onClick={() => document.getElementById('live-demo')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                <Shield className="mr-2 h-5 w-5" />
+                Live Token Demo
               </Button>
             </div>
           </div>
