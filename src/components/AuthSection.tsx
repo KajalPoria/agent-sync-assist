@@ -12,7 +12,7 @@ export function AuthSection() {
 
   const handleDescopeLogin = () => {
     // Redirect to Descope authentication
-    window.location.href = `https://auth.descope.io/P320WxedXmGS82w7wBT4jpd8zokl/login`;
+    window.location.href = `https://api.descope.com/login/P322nxDtmSAQm1htlwdkb6VNgfuK`;
   };
 
   const handleLogout = () => {
@@ -21,7 +21,7 @@ export function AuthSection() {
   };
 
   const handleConsoleAccess = () => {
-    window.open('https://app.descope.com/P320WxedXmGS82w7wBT4jpd8zokl', '_blank');
+    window.open('https://app.descope.com/home', '_blank');
   };
 
   if (isSessionLoading) {

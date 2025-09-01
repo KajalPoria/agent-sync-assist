@@ -49,7 +49,7 @@ export function Footer() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open('https://app.descope.com/P320WxedXmGS82w7wBT4jpd8zokl', '_blank')}
+                onClick={() => window.open('https://app.descope.com/P322nxDtmSAQm1htlwdkb6VNgfuK', '_blank')}
                 className="w-full justify-start"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
@@ -72,7 +72,7 @@ export function Footer() {
         <div className="pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <span>© 2024 AgentComm Platform</span>
+              <span>© 2025 AgentComm Platform</span>
               <span>Powered by Descope</span>
             </div>
             

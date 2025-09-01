@@ -11,7 +11,7 @@ import Dashboard from "./pages/Dashboard";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <AuthProvider projectId="P320WxedXmGS82w7wBT4jpd8zokl">
+  <AuthProvider projectId="P322nxDtmSAQm1htlwdkb6VNgfuK">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />

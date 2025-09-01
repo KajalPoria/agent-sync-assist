@@ -21,7 +21,7 @@ export function TechStackSection() {
       description: "Enterprise-grade OAuth 2.0 with delegated access and secure token exchange",
       features: ["Token Generation", "Scope Validation", "Delegation Management", "User Consent Flows"],
       color: "bg-primary/20 text-primary",
-      link: "https://app.descope.com/P320WxedXmGS82w7wBT4jpd8zokl"
+      link: "https://app.descope.com/apps/inbound"
     },
     {
       category: "Agent Frameworks",
@@ -147,7 +147,7 @@ export function TechStackSection() {
                 variant="outline"
                 asChild
               >
-                <a href="https://app.descope.com/P320WxedXmGS82w7wBT4jpd8zokl" target="_blank" rel="noopener noreferrer">
+                <a href="https://app.descope.com/home" target="_blank" rel="noopener noreferrer">
                   <Shield className="w-4 h-4 mr-2" />
                   View Descope Console
                 </a>
