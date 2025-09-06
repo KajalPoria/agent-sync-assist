@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Button } from "../components/ui/button.tsx";
+import { Card } from "../components/ui/card.tsx";
+import { Badge } from "../components/ui/badge.tsx";
 import { useSession, useUser, useDescope } from '@descope/react-sdk';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,15 +15,19 @@ import {
   CheckCircle,
   AlertTriangle,
   Users,
-  Lock
+  Lock,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "../integrations/supabase/client.ts";
 
 interface AgentStats {
   emailsProcessed: number;
   eventsCreated: number;
   tokensGenerated: number;
   lastActivity: string;
+  recentCommunications: any[];
+  totalCommunications: number;
 }
 
 export default function Dashboard() {
@@ -31,16 +36,41 @@ export default function Dashboard() {
   const { logout } = useDescope();
   const navigate = useNavigate();
   const [stats, setStats] = useState<AgentStats>({
-    emailsProcessed: 147,
-    eventsCreated: 23,
-    tokensGenerated: 89,
-    lastActivity: '2 minutes ago'
+    emailsProcessed: 0,
+    eventsCreated: 0,
+    tokensGenerated: 0,
+    lastActivity: 'Loading...',
+    recentCommunications: [],
+    totalCommunications: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.functions.invoke('get-dashboard-stats');
+      
+      if (error) {
+        console.error('Error fetching dashboard stats:', error);
+        toast.error("Failed to load dashboard stats");
+        return;
+      }
+
+      setStats(data);
+    } catch (error) {
+      console.error('Error invoking dashboard stats function:', error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isSessionLoading && !isAuthenticated) {
       toast.error("Authentication required");
       navigate('/');
+    } else if (isAuthenticated) {
+      fetchDashboardStats();
     }
   }, [isAuthenticated, isSessionLoading, navigate]);
 
@@ -89,6 +119,15 @@ export default function Dashboard() {
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Connected
               </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={fetchDashboardStats}
+                disabled={isLoading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>Welcome, {user?.email}</span>
               </div>
@@ -185,16 +224,20 @@ export default function Dashboard() {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span>Current Queue</span>
-                      <span className="font-medium">12 emails</span>
+                      <span>Total Communications</span>
+                      <span className="font-medium">{stats.totalCommunications}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Avg. Processing Time</span>
-                      <span className="font-medium">2.3 seconds</span>
+                      <span>Recent Activity</span>
+                      <span className="font-medium">{stats.recentCommunications.length} items</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Success Rate</span>
-                      <span className="font-medium text-success">99.7%</span>
+                      <span className="font-medium text-success">
+                        {stats.totalCommunications > 0 
+                          ? Math.round((stats.eventsCreated / stats.totalCommunications) * 100) 
+                          : 0}%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -230,16 +273,20 @@ export default function Dashboard() {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span>Pending Approvals</span>
-                      <span className="font-medium">3 requests</span>
+                      <span>Events Created</span>
+                      <span className="font-medium">{stats.eventsCreated}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Events Today</span>
-                      <span className="font-medium">7 created</span>
+                      <span>Tokens Generated</span>
+                      <span className="font-medium">{stats.tokensGenerated}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Consent Rate</span>
-                      <span className="font-medium text-success">94.2%</span>
+                      <span className="font-medium text-success">
+                        {stats.tokensGenerated > 0 
+                          ? Math.round((stats.recentCommunications.filter(c => c.user_consent_given).length / stats.tokensGenerated) * 100) 
+                          : 0}%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -283,16 +330,63 @@ export default function Dashboard() {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    <CheckCircle className="w-4 h-4 text-success" />
                     <span className="font-medium">User Consent</span>
                   </div>
                   <p className="text-sm text-muted-foreground ml-6">
-                    3 pending consent requests
+                    {stats.recentCommunications.filter(c => c.user_consent_given === false).length} pending requests
                   </p>
                 </div>
               </div>
             </div>
           </Card>
+          
+          {/* Recent Activity */}
+          {stats.recentCommunications.length > 0 && (
+            <Card className="p-8">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center">
+                    <Activity className="w-6 h-6 text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Recent Communications</h3>
+                    <p className="text-muted-foreground">Latest agent interactions</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {stats.recentCommunications.slice(0, 5).map((comm, index) => (
+                    <div key={comm.id} className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
+                      <div className="flex-shrink-0">
+                        {comm.has_calendar_event ? (
+                          <CheckCircle className="w-5 h-5 text-success" />
+                        ) : (
+                          <Clock className="w-5 h-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">{comm.from_agent}</span>
+                          <ArrowLeft className="w-3 h-3 text-muted-foreground rotate-180" />
+                          <span className="font-medium">{comm.to_agent}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {comm.parsed_info?.subject || 'Email processed'} • 
+                          {new Date(comm.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <Badge variant={comm.user_consent_given ? "default" : "secondary"} className="text-xs">
+                          {comm.processing_status || 'completed'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </main>
     </div>

@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Button } from "../components/ui/button.tsx";
 import { Shield, ExternalLink, Github, Globe } from "lucide-react";
 
 export function Footer() {
@@ -49,7 +50,7 @@ export function Footer() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open('https://app.descope.com/P322nxDtmSAQm1htlwdkb6VNgfuK', '_blank')}
+                onClick={() => window.open('https://app.descope.com', '_blank')}
                 className="w-full justify-start"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />

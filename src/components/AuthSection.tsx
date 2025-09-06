@@ -1,22 +1,94 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useDescope, useSession, useUser } from '@descope/react-sdk';
-import { Shield, ExternalLink, Key, Check, Lock } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Button } from "../components/ui/button.tsx";
+import { Card } from "../components/ui/card.tsx";
+import { Badge } from "../components/ui/badge.tsx";
+import { AuthProvider, useDescope, useSession, useUser } from '@descope/react-sdk';
+import { Descope } from '@descope/react-sdk';
+import { Shield, ExternalLink, Key, Check, Lock, Loader, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
+// Backend session validation function
+const validateSession = async (sessionToken: string): Promise<boolean> => {
+  try {
+    // For development/demo purposes, we'll simulate successful validation
+    // In production, replace this with actual API call to your backend
+    console.log("Validating session token:", sessionToken?.substring(0, 20) + "...");
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // For demo purposes, assume validation is successful if we have a token
+    // In a real app, you would make an actual API call here:
+    /*
+    const response = await fetch('/api/validate-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionToken }),
+    });
+    
+    if (!response.ok) return false;
+    const data = await response.json();
+    return data.valid;
+    */
+    
+    return !!sessionToken; // Demo: return true if sessionToken exists
+  } catch (error) {
+    console.error('Session validation error:', error);
+    return false;
+  }
+};
+
+// Main AuthSection component
 export function AuthSection() {
-  const { isAuthenticated, isSessionLoading } = useSession();
+  const { isAuthenticated, isSessionLoading, sessionToken } = useSession();
   const { user } = useUser();
   const { logout } = useDescope();
+  const [isValidating, setIsValidating] = useState(false);
+  const [backendValidated, setBackendValidated] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
-  const handleDescopeLogin = () => {
-    // Redirect to Descope authentication
-    window.location.href = `https://api.descope.com/login/P322nxDtmSAQm1htlwdkb6VNgfuK`;
+  // Validate session with backend when session token changes
+  useEffect(() => {
+    if (isAuthenticated && sessionToken) {
+      validateSessionWithBackend();
+    } else {
+      setBackendValidated(false);
+      setValidationError('');
+    }
+  }, [isAuthenticated, sessionToken]);
+
+  const validateSessionWithBackend = async () => {
+    if (!sessionToken) {
+      setValidationError('No session token available');
+      return;
+    }
+    
+    setIsValidating(true);
+    setValidationError('');
+    try {
+      const isValid = await validateSession(sessionToken);
+      setBackendValidated(isValid);
+      
+      if (!isValid) {
+        setValidationError("Session validation failed. Please log in again.");
+        toast.error("Session validation failed");
+      } else {
+        toast.success("Session validated successfully");
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+      setBackendValidated(false);
+      setValidationError('Validation service unavailable');
+      toast.error("Validation service error");
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   const handleLogout = () => {
     logout();
+    setBackendValidated(false);
+    setValidationError('');
     toast.success("Successfully logged out");
   };
 
@@ -24,11 +96,18 @@ export function AuthSection() {
     window.open('https://app.descope.com/home', '_blank');
   };
 
+  const handleRetryValidation = () => {
+    validateSessionWithBackend();
+  };
+
   if (isSessionLoading) {
     return (
       <section className="py-24 bg-secondary/30">
         <div className="container mx-auto px-6 text-center">
-          <div className="animate-pulse">Loading authentication...</div>
+          <div className="flex items-center justify-center">
+            <Loader className="w-6 h-6 mr-2 animate-spin" />
+            Loading authentication...
+          </div>
         </div>
       </section>
     );
@@ -69,11 +148,67 @@ export function AuthSection() {
                 <div className="flex items-center gap-3 p-4 bg-success/10 border border-success/20 rounded-lg">
                   <Check className="w-5 h-5 text-success" />
                   <div>
-                    <p className="font-semibold text-success">Authenticated</p>
+                    <p className="font-semibold text-success">Frontend Authenticated</p>
                     <p className="text-sm text-muted-foreground">Welcome, {user?.email || 'User'}</p>
                   </div>
                 </div>
                 
+                {/* Backend Validation Status */}
+                <div className="p-4 border rounded-lg space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Backend Validation
+                  </h4>
+                  
+                  {isValidating && (
+                    <div className="flex items-center gap-2 text-sm text-blue-600">
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Validating session with backend...
+                    </div>
+                  )}
+                  
+                  {backendValidated && !isValidating && (
+                    <div className="flex items-center gap-2 text-sm text-success">
+                      <Check className="w-4 h-4" />
+                      Backend session validated successfully
+                    </div>
+                  )}
+                  
+                  {validationError && !isValidating && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-destructive">
+                        <AlertCircle className="w-4 h-4" />
+                        {validationError}
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRetryValidation}
+                        className="text-xs"
+                      >
+                        Retry Validation
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {!isValidating && !backendValidated && !validationError && (
+                    <div className="text-sm text-muted-foreground">
+                      Click below to validate with backend
+                    </div>
+                  )}
+                  
+                  {!isValidating && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={validateSessionWithBackend}
+                      disabled={isValidating}
+                    >
+                      Validate Session
+                    </Button>
+                  )}
+                </div>
+
                 <div className="space-y-3">
                   <h4 className="font-semibold">Active Permissions:</h4>
                   <div className="grid gap-2">
@@ -96,6 +231,7 @@ export function AuthSection() {
                   <Button 
                     onClick={() => window.location.href = '/dashboard'}
                     className="bg-gradient-primary hover:shadow-glow"
+                    disabled={!backendValidated}
                   >
                     Access Agent Dashboard
                   </Button>
@@ -114,14 +250,18 @@ export function AuthSection() {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleDescopeLogin}
-                  className="w-full bg-gradient-primary hover:shadow-glow"
-                  size="lg"
-                >
-                  <Shield className="w-5 h-5 mr-2" />
-                  Login with Descope
-                </Button>
+                <Descope
+                  flowId="sign-up-or-in"
+                  theme="light"
+                  onSuccess={(e) => {
+                    console.log('Login successful:', e.detail.user);
+                    toast.success('Successfully logged in!');
+                  }}
+                  onError={(err) => {
+                    console.error("Login error:", err);
+                    toast.error("Authentication failed. Please try again.");
+                  }}
+                />
               </div>
             )}
           </Card>
@@ -157,23 +297,27 @@ export function AuthSection() {
 
             <Card className="p-6">
               <div className="space-y-4">
-                <h4 className="text-lg font-semibold">Developer Access</h4>
+                <h4 className="text-lg font-semibold">Troubleshooting</h4>
                 <p className="text-sm text-muted-foreground">
-                  Access the Descope console to manage authentication, view logs, and configure agent permissions.
+                  If you're experiencing validation issues, check that your backend API is running and accessible.
                 </p>
-                <Button 
-                  variant="outline" 
-                  onClick={handleConsoleAccess}
-                  className="w-full"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Open Descope Console
-                </Button>
+                <div className="text-xs p-3 bg-muted rounded">
+                  <strong>Development Note:</strong> The validation is currently simulated. In production, implement a proper backend endpoint at <code>/api/validate-session</code>.
+                </div>
               </div>
             </Card>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+// Main App component
+export default function App() {
+  return (
+    <AuthProvider projectId="P322nxDtmSAQm1htlwdkb6VNgfuK">
+      <AuthSection />
+    </AuthProvider>
   );
 }

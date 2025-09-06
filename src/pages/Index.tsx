@@ -1,10 +1,11 @@
-import { Hero } from "@/components/Hero";
-import { AgentShowcase } from "@/components/AgentShowcase";
-import { TechStackSection } from "@/components/TechStackSection";
-import { AuthSection } from "@/components/AuthSection";
-import { DemoSection } from "@/components/DemoSection";
-import { LiveTokenDemo } from "@/components/LiveTokenDemo";
-import { Footer } from "@/components/Footer";
+import React from 'react';
+import { Hero } from "../components/Hero.tsx";
+import { AgentShowcase } from "../components/AgentShowcase.tsx";
+import { TechStackSection } from "../components/TechStackSection.tsx";
+import { AuthSection } from "../components/AuthSection.tsx";
+import { DemoSection } from "../components/DemoSection.tsx";
+import { LiveTokenDemo } from "../components/LiveTokenDemo.tsx";
+import { Footer } from "../components/Footer.tsx";
 
 const Index = () => {
   return (

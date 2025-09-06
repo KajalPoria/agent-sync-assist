@@ -1,5 +1,6 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Card } from "../components/ui/card.tsx";
+import { Badge } from "../components/ui/badge.tsx";
 import { Mail, Calendar, Shield, ArrowRight, Lock, CheckCircle } from "lucide-react";
 
 export function AgentShowcase() {
@@ -17,7 +18,7 @@ export function AgentShowcase() {
         "Priority classification",
         "Secure token generation"
       ],
-      status: "Processing 1,247 emails",
+      status: "Currently processing communications",
       gradient: "bg-gradient-primary"
     },
     {
@@ -33,7 +34,7 @@ export function AgentShowcase() {
         "Consent-based actions",
         "Delegated access handling"
       ],
-      status: "12 events scheduled today",
+      status: "Ready to schedule events",
       gradient: "bg-gradient-accent"
     }
   ];
